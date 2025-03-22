@@ -33,7 +33,11 @@
 }
 #bird {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  background-color: red;
+  width: 68px;
+  height: 48px;
+}
+#bird-image {
+  transition: transform 0.5s ease;
+  width: 68px;
+  height: 48px;
 }

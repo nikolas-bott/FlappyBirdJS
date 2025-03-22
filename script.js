@@ -1,4 +1,5 @@
 const bird = document.getElementById("bird");
+const birdImage = document.getElementById("bird-image");
 const lowerPlayground = document.getElementById("lower-playground");
 const upperPlayground = document.getElementById("upper-playground");
 
@@ -24,30 +25,34 @@ document.addEventListener("mouseup", () => {
 
 function birdJump() {
   if (intervalDown) clearInterval(intervalDown);
-  if (timeoutDown) clearTimeout(timeoutDown);
+  if (intervalUp) clearTimeout(intervalUp);
 
   let i = 0;
 
   intervalUp = setInterval(() => {
-    bird.style.top = bird.getBoundingClientRect().top - 125 / 250 + "px";
+    console.log("JUMP!");
+
+    bird.style.top = bird.getBoundingClientRect().top - 70 / 100 + "px";
     i++;
-    if (i >= 250) {
+
+    requestAnimationFrame(() => {
+      birdImage.style.transform = "rotate(-50deg)";
+    });
+
+    if (i >= 100) {
       clearInterval(intervalUp);
+      moveBirdDown();
     }
   }, 1);
-
-  timeoutDown = setTimeout(() => {
-    moveBirdDown();
-  }, 250);
 }
 
 function fail() {}
 
 function moveBirdDown() {
   let i = bird.getBoundingClientRect().top;
+  let counter = 1;
 
   intervalDown = setInterval(() => {
-    console.log("isIt?-- " + isBirdTouchingBox());
     if (isBirdTouchingBox()) {
       console.log("Touching");
       alert("Touching");
@@ -61,8 +66,25 @@ function moveBirdDown() {
       clearInterval(intervalDown);
       return;
     }
+
+    if (counter < 50) {
+      requestAnimationFrame(() => {
+        birdImage.style.transform = "rotate(" + 0 + "deg)";
+      });
+    }
+
+    if (counter > 50 && counter * 0.3 < 80) {
+      console.log("Counter: ");
+      requestAnimationFrame(() => {
+        birdImage.style.transform = "rotate(" + counter * 0.3 + "deg)";
+      });
+    }
+
     i++;
+    console.log("Down");
+
     bird.style.top = i + "px";
+    counter++;
   }, 5);
 }
 
