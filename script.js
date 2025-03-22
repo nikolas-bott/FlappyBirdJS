@@ -91,10 +91,17 @@ function moveBirdDown() {
 function moveBox(bottom) {
   const box = document.createElement("div");
   let i = playground.getBoundingClientRect().left;
+
   if (bottom) {
     lowerPlayground.appendChild(box);
+    box.style.borderBottom = "none";
+    box.style.setProperty("--barrier-top-offset", "-30px");
+    box.style.setProperty("--barrier-bottom-offset", "auto");
   } else {
     upperPlayground.appendChild(box);
+    box.style.borderTop = "none";
+    box.style.setProperty("--barrier-top-offset", "auto");
+    box.style.setProperty("--barrier-bottom-offset", "-30px");
   }
 
   let heightInPercent;
