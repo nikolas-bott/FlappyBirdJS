@@ -40,10 +40,19 @@ function birdJump() {
   }, 250);
 }
 
+function fail() {}
+
 function moveBirdDown() {
   let i = bird.getBoundingClientRect().top;
 
   intervalDown = setInterval(() => {
+    console.log("isIt?-- " + isBirdTouchingBox());
+    if (isBirdTouchingBox()) {
+      console.log("Touching");
+      alert("Touching");
+      clearInterval(intervalDown);
+      return;
+    }
     if (
       bird.getBoundingClientRect().bottom >
       playground.getBoundingClientRect().bottom
@@ -65,12 +74,13 @@ function moveBox(bottom) {
     upperPlayground.appendChild(box);
   }
 
+  let heightInPercent = Math.floor(Math.random() * 30) + 10;
+
   box.classList.add("barrier");
-  box.style.height = "30%";
+  box.style.height = heightInPercent + "%";
   box.style.width = "5%";
 
   const interval = setInterval(() => {
-    console.log("test");
     i++;
     box.style.right = i + "px";
 
@@ -82,4 +92,51 @@ function moveBox(bottom) {
       box.remove();
     }
   }, 10);
+}
+
+function isBirdTouchingBox() {
+  const boxes = document.getElementsByClassName("barrier");
+  let isTouching = false;
+
+  Array.from(boxes).forEach((box) => {
+    if (isBoxTouchingBird(box)) {
+      console.log("true...");
+      isTouching = true;
+    }
+  });
+  return isTouching;
+}
+
+function isBoxTouchingBird(box) {
+  const birdLeftPos = bird.getBoundingClientRect().left;
+  const birdRightPos = bird.getBoundingClientRect().right;
+
+  const birdTopPos = bird.getBoundingClientRect().top;
+  const birdBottomPos = bird.getBoundingClientRect().bottom;
+
+  if (isBoxTop(box)) {
+    return (
+      birdRightPos > box.getBoundingClientRect().left &&
+      birdRightPos < box.getBoundingClientRect().right &&
+      box.getBoundingClientRect().bottom > birdTopPos
+    );
+  } else {
+    return (
+      birdRightPos > box.getBoundingClientRect().left &&
+      birdRightPos < box.getBoundingClientRect().right &&
+      box.getBoundingClientRect().top < birdBottomPos
+    );
+  }
+}
+
+function isBoxTop(box) {
+  return inBound(
+    box.getBoundingClientRect().top,
+    playground.getBoundingClientRect().top,
+    10
+  );
+}
+
+function inBound(a, b, bound) {
+  return (a - bound < b && a + bound > b) || (b - bound < a && b + bound > a);
 }
