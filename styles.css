@@ -1,0 +1,39 @@
+#container {
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#playground {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+  height: 100%;
+  background-color: white;
+  border: 5px solid black;
+  border-radius: 10px;
+}
+#upper-playground {
+  height: 100%;
+  width: 100%;
+}
+#lower-playground {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: end;
+  justify-content: end;
+}
+
+.barrier {
+  position: absolute;
+  background-color: green;
+}
+#bird {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-color: red;
+}
