@@ -5,6 +5,7 @@ const upperPlayground = document.getElementById("upper-playground");
 const playground = document.getElementById("playground");
 
 let intervalDown;
+let heightOfSingleBox;
 let timeoutDown;
 let intervalUp;
 
@@ -12,10 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
   moveBirdDown();
   setInterval(() => {
     moveBox(false);
-  }, 2000);
+  }, 3500);
   setInterval(() => {
     moveBox(true);
-  }, 2000);
+  }, 3500);
 });
 document.addEventListener("mouseup", () => {
   birdJump();
@@ -74,7 +75,13 @@ function moveBox(bottom) {
     upperPlayground.appendChild(box);
   }
 
-  let heightInPercent = Math.floor(Math.random() * 30) + 10;
+  let heightInPercent;
+  if (!bottom) {
+    heightInPercent = Math.floor(Math.random() * 30) + 10;
+    heightOfSingleBox = heightInPercent;
+  } else {
+    heightInPercent = 60 - heightOfSingleBox;
+  }
 
   box.classList.add("barrier");
   box.style.height = heightInPercent + "%";
