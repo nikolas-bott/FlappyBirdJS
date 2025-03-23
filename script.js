@@ -3,6 +3,9 @@ const birdImage = document.getElementById("bird-image");
 const lowerPlayground = document.getElementById("lower-playground");
 const upperPlayground = document.getElementById("upper-playground");
 const scoreCounter = document.getElementById("score");
+const gameOverScreen = document.getElementById("game-over");
+const gameOverScore = document.getElementById("game-over-score");
+const restartButton = document.getElementById("restart");
 
 const playground = document.getElementById("playground");
 
@@ -11,31 +14,43 @@ let score = 0;
 let pipeIntervals = [];
 let heightDifferencePipe = 50;
 let gameStarted = false;
+let firstGame = true;
 let intervalDown;
 let heightOfSinglePipe;
 let timeoutDown;
 let intervalUp;
 
 document.addEventListener("mouseup", () => {
-  if (!gameStarted) {
-    gameStarted = true;
-
-    setTimeout(() => {
-      movePipe(false);
-      movePipe(true);
-
-      const interval_id1 = setInterval(() => {
-        movePipe(false);
-      }, 3500);
-      const interval_id2 = setInterval(() => {
-        movePipe(true);
-      }, 3500);
-
-      pipeIntervals.push(interval_id1);
-      pipeIntervals.push(interval_id2);
-    }, 1000);
+  if (!gameStarted && firstGame) {
+    startGame();
   }
   birdJump();
+});
+
+function startGame() {
+  gameStarted = true;
+
+  setTimeout(() => {
+    movePipe(false);
+    movePipe(true);
+
+    const interval_id1 = setInterval(() => {
+      movePipe(false);
+    }, 3500);
+    const interval_id2 = setInterval(() => {
+      movePipe(true);
+    }, 3500);
+
+    pipeIntervals.push(interval_id1);
+    pipeIntervals.push(interval_id2);
+  }, 1000);
+}
+
+restartButton.addEventListener("click", () => {
+  setTimeout(() => {
+    gameOverScreen.style.visibility = "hidden";
+    startGame();
+  }, 300);
 });
 
 function birdJump() {
@@ -53,10 +68,7 @@ function birdJump() {
     });
 
     if (isBirdTouchingPipe()) {
-      console.log("Touching");
-      alert("Touching");
-      clearInterval(intervalDown);
-      fail();
+      fail(intervalUp);
       return;
     }
     if (Date.now() - timeSinceLastSucess > 1500 && isBirdBetweenPipes()) {
@@ -85,17 +97,25 @@ function resetBirdPos() {
     "px";
 }
 
-function fail() {
+function fail(interval) {
+  firstGame = false;
   gameStarted = false;
+  gameOverScore.innerText = "Score: " + score;
+
   score = 0;
   scoreCounter.innerText = score;
-  for (let i = 0; i < pipeIntervals.length; i++) {
-    clearInterval(pipeIntervals[i]);
-  }
-  pipeIntervals = [];
 
-  removeAllPipes();
+  clearInterval(interval);
   resetBirdPos();
+
+  setTimeout(() => {
+    for (let i = 0; i < pipeIntervals.length; i++) {
+      clearInterval(pipeIntervals[i]);
+    }
+    pipeIntervals = [];
+    removeAllPipes();
+    gameOverScreen.style.visibility = "visible";
+  }, 100);
 }
 
 function moveBirdDown() {
@@ -105,9 +125,7 @@ function moveBirdDown() {
   intervalDown = setInterval(() => {
     if (isBirdTouchingPipe()) {
       console.log("Touching");
-      alert("Touching");
-      clearInterval(intervalDown);
-      fail();
+      fail(intervalDown);
       return;
     }
     if (Date.now() - timeSinceLastSucess > 1500 && isBirdBetweenPipes()) {
