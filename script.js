@@ -2,24 +2,41 @@ const bird = document.getElementById("bird");
 const birdImage = document.getElementById("bird-image");
 const lowerPlayground = document.getElementById("lower-playground");
 const upperPlayground = document.getElementById("upper-playground");
+const scoreCounter = document.getElementById("score");
 
 const playground = document.getElementById("playground");
 
+let timeSinceLastSucess = 0;
+let score = 0;
+let pipeIntervals = [];
+let heightDifferencePipe = 50;
+let gameStarted = false;
 let intervalDown;
-let heightOfSingleBox;
+let heightOfSinglePipe;
 let timeoutDown;
 let intervalUp;
 
-document.addEventListener("DOMContentLoaded", () => {
-  moveBirdDown();
-  setInterval(() => {
-    moveBox(false);
-  }, 3500);
-  setInterval(() => {
-    moveBox(true);
-  }, 3500);
-});
+document.addEventListener("DOMContentLoaded", () => {});
+
 document.addEventListener("mouseup", () => {
+  if (!gameStarted) {
+    gameStarted = true;
+
+    setTimeout(() => {
+      movePipe(false);
+      movePipe(true);
+
+      const interval_id1 = setInterval(() => {
+        movePipe(false);
+      }, 3500);
+      const interval_id2 = setInterval(() => {
+        movePipe(true);
+      }, 3500);
+
+      pipeIntervals.push(interval_id1);
+      pipeIntervals.push(interval_id2);
+    }, 1000);
+  }
   birdJump();
 });
 
@@ -30,8 +47,6 @@ function birdJump() {
   let i = 0;
 
   intervalUp = setInterval(() => {
-    console.log("JUMP!");
-
     bird.style.top = bird.getBoundingClientRect().top - 70 / 100 + "px";
     i++;
 
@@ -39,25 +54,65 @@ function birdJump() {
       birdImage.style.transform = "rotate(-50deg)";
     });
 
+    if (isBirdTouchingPipe()) {
+      console.log("Touching");
+      alert("Touching");
+      clearInterval(intervalDown);
+      fail();
+      return;
+    }
+    if (Date.now() - timeSinceLastSucess > 1500 && isBirdBetweenPipes()) {
+      score++;
+      scoreCounter.innerText = score;
+    }
+
     if (i >= 100) {
       clearInterval(intervalUp);
       moveBirdDown();
     }
   }, 1);
 }
+function removeAllPipes() {
+  const pipes = document.getElementsByClassName("pipe");
 
-function fail() {}
+  Array.from(pipes).forEach((pipe) => {
+    pipe.remove();
+  });
+}
+function resetBirdPos() {
+  bird.style.top =
+    (playground.getBoundingClientRect().top +
+      playground.getBoundingClientRect().bottom) /
+      2 +
+    "px";
+}
+
+function fail() {
+  gameStarted = false;
+  score = 0;
+  scoreCounter.innerText = score;
+  clearInterval(pipeIntervals[0]);
+  clearInterval(pipeIntervals[1]);
+
+  removeAllPipes();
+  resetBirdPos();
+}
 
 function moveBirdDown() {
   let i = bird.getBoundingClientRect().top;
   let counter = 1;
 
   intervalDown = setInterval(() => {
-    if (isBirdTouchingBox()) {
+    if (isBirdTouchingPipe()) {
       console.log("Touching");
       alert("Touching");
       clearInterval(intervalDown);
+      fail();
       return;
+    }
+    if (Date.now() - timeSinceLastSucess > 1500 && isBirdBetweenPipes()) {
+      score++;
+      scoreCounter.innerText = score;
     }
     if (
       bird.getBoundingClientRect().bottom >
@@ -74,68 +129,68 @@ function moveBirdDown() {
     }
 
     if (counter > 50 && counter * 0.3 < 80) {
-      console.log("Counter: ");
       requestAnimationFrame(() => {
         birdImage.style.transform = "rotate(" + counter * 0.3 + "deg)";
       });
     }
 
     i++;
-    console.log("Down");
 
     bird.style.top = i + "px";
     counter++;
   }, 5);
 }
 
-function moveBox(bottom) {
-  const box = document.createElement("div");
+function movePipe(bottom) {
+  console.log("Pipe spawned");
+
+  const pipe = document.createElement("div");
   let i = playground.getBoundingClientRect().left;
 
   if (bottom) {
-    lowerPlayground.appendChild(box);
-    box.style.borderBottom = "none";
-    box.style.setProperty("--barrier-top-offset", "-30px");
-    box.style.setProperty("--barrier-bottom-offset", "auto");
+    lowerPlayground.appendChild(pipe);
+    pipe.style.borderBottom = "none";
+    pipe.style.setProperty("--pipe-top-offset", "-10px");
+    pipe.style.setProperty("--pipe-bottom-offset", "auto");
   } else {
-    upperPlayground.appendChild(box);
-    box.style.borderTop = "none";
-    box.style.setProperty("--barrier-top-offset", "auto");
-    box.style.setProperty("--barrier-bottom-offset", "-30px");
+    upperPlayground.appendChild(pipe);
+    pipe.style.borderTop = "none";
+    pipe.style.setProperty("--pipe-top-offset", "auto");
+    pipe.style.setProperty("--pipe-bottom-offset", "-10px");
   }
 
   let heightInPercent;
   if (!bottom) {
     heightInPercent = Math.floor(Math.random() * 30) + 10;
-    heightOfSingleBox = heightInPercent;
+    heightOfSinglePipe = heightInPercent;
   } else {
-    heightInPercent = 60 - heightOfSingleBox;
+    heightInPercent = heightDifferencePipe - heightOfSinglePipe;
   }
 
-  box.classList.add("barrier");
-  box.style.height = heightInPercent + "%";
-  box.style.width = "5%";
+  pipe.classList.add("pipe");
+  pipe.style.height = heightInPercent + "%";
+  pipe.style.width = "5%";
 
   const interval = setInterval(() => {
     i++;
-    box.style.right = i + "px";
+    pipe.style.right = i + "px";
 
     if (
-      box.getBoundingClientRect().right <
+      pipe.getBoundingClientRect().left <
       playground.getBoundingClientRect().left
     ) {
       clearInterval(interval);
-      box.remove();
+      pipe.remove();
     }
   }, 10);
 }
 
-function isBirdTouchingBox() {
-  const boxes = document.getElementsByClassName("barrier");
+function isBirdTouchingPipe() {
+  const pipes = document.getElementsByClassName("pipe");
   let isTouching = false;
 
-  Array.from(boxes).forEach((box) => {
-    if (isBoxTouchingBird(box)) {
+  Array.from(pipes).forEach((pipe) => {
+    if (isPipeTouchingBird(pipe)) {
       console.log("true...");
       isTouching = true;
     }
@@ -143,31 +198,63 @@ function isBirdTouchingBox() {
   return isTouching;
 }
 
-function isBoxTouchingBird(box) {
+function isPipeTouchingBird(pipe) {
   const birdLeftPos = bird.getBoundingClientRect().left;
   const birdRightPos = bird.getBoundingClientRect().right;
 
   const birdTopPos = bird.getBoundingClientRect().top;
   const birdBottomPos = bird.getBoundingClientRect().bottom;
 
-  if (isBoxTop(box)) {
+  if (isPipeTop(pipe)) {
     return (
-      birdRightPos > box.getBoundingClientRect().left &&
-      birdRightPos < box.getBoundingClientRect().right &&
-      box.getBoundingClientRect().bottom > birdTopPos
+      ((birdRightPos > pipe.getBoundingClientRect().left &&
+        birdRightPos < pipe.getBoundingClientRect().right) ||
+        (birdLeftPos > pipe.getBoundingClientRect().left &&
+          birdLeftPos < pipe.getBoundingClientRect().right)) &&
+      pipe.getBoundingClientRect().bottom > birdTopPos
     );
   } else {
     return (
-      birdRightPos > box.getBoundingClientRect().left &&
-      birdRightPos < box.getBoundingClientRect().right &&
-      box.getBoundingClientRect().top < birdBottomPos
+      ((birdRightPos > pipe.getBoundingClientRect().left &&
+        birdRightPos < pipe.getBoundingClientRect().right) ||
+        (birdLeftPos > pipe.getBoundingClientRect().left &&
+          birdLeftPos < pipe.getBoundingClientRect().right)) &&
+      pipe.getBoundingClientRect().top < birdBottomPos
     );
   }
 }
 
-function isBoxTop(box) {
+function isBirdBetweenPipes() {
+  const birdTop = bird.getBoundingClientRect().top;
+  const birdBottom = bird.getBoundingClientRect().bottom;
+  const birdLeft = bird.getBoundingClientRect().left;
+  const birdRight = bird.getBoundingClientRect().right;
+
+  const pipes = document.getElementsByClassName("pipe");
+  let isBetween = false;
+
+  for (let i = 0; i < pipes.length; i++) {
+    const pipe = pipes[i];
+    const pipeLeft = pipe.getBoundingClientRect().left;
+    const pipeRight = pipe.getBoundingClientRect().right;
+
+    if (!(birdLeft > pipeLeft && birdLeft < pipeRight)) continue;
+
+    if (isPipeTop(pipe)) {
+      isBetween = birdTop > pipe.getBoundingClientRect().bottom;
+    } else {
+      isBetween = birdBottom < pipe.getBoundingClientRect().top;
+    }
+  }
+
+  console.log("IsBetween: " + isBetween);
+  if (isBetween) timeSinceLastSucess = Date.now();
+  return isBetween;
+}
+
+function isPipeTop(pipe) {
   return inBound(
-    box.getBoundingClientRect().top,
+    pipe.getBoundingClientRect().top,
     playground.getBoundingClientRect().top,
     10
   );
