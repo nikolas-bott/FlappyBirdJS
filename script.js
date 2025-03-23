@@ -16,8 +16,6 @@ let heightOfSinglePipe;
 let timeoutDown;
 let intervalUp;
 
-document.addEventListener("DOMContentLoaded", () => {});
-
 document.addEventListener("mouseup", () => {
   if (!gameStarted) {
     gameStarted = true;
@@ -91,8 +89,10 @@ function fail() {
   gameStarted = false;
   score = 0;
   scoreCounter.innerText = score;
-  clearInterval(pipeIntervals[0]);
-  clearInterval(pipeIntervals[1]);
+  for (let i = 0; i < pipeIntervals.length; i++) {
+    clearInterval(pipeIntervals[i]);
+  }
+  pipeIntervals = [];
 
   removeAllPipes();
   resetBirdPos();
@@ -118,6 +118,7 @@ function moveBirdDown() {
       bird.getBoundingClientRect().bottom >
       playground.getBoundingClientRect().bottom
     ) {
+      fail();
       clearInterval(intervalDown);
       return;
     }
